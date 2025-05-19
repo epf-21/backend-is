@@ -37,7 +37,7 @@ class CarModel {
         anio: car.a_o,
         precio_por_dia: car.precio_por_dia,
         imagenes: car.Imagen && car.Imagen.length > 0 ? car.Imagen[0].data : '',
-        veces_alquilado: car._count.reservas,
+        veces_alquilado: car._count.Reserva,
       }))
     } catch (error) {
       console.error('Error al obtener los autos más alquilados: ', error);
