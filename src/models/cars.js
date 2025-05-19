@@ -1,6 +1,47 @@
 const { prisma } = require("../config/prisma");
 
 class CarModel {
+
+  static async getAll() {
+    try {
+      const cars = await prisma.carro.findMany({
+        include: {
+          Imagen: true,
+          Reserva: {
+            where: {
+              estado: "confirmado",
+            }
+          },
+          Direccion: {
+            select: {
+              latitud: true,
+              longitud: true
+            }
+          }
+        }
+      })
+
+      return cars.map(car => ({
+        id: car.id,
+        marca: car.marca,
+        modelo: car.modelo,
+        anio: car.a_o,
+        precio_por_dia: car.precio_por_dia,
+        imagenes: car.Imagen && car.Imagen.length > 0 ? car.Imagen[0].data : '',
+        veces_alquilado: car.Reserva.length,
+        latitud: car.Direccion.latitud,
+        longitud: car.Direccion.longitud,
+        puertas: car.puertas,
+        asientos: car.asientos,
+        calificacion: car.calificacionpromedio,
+        transmision: car.transmicion
+      }))
+    } catch (error) {
+      console.error('Error al obtener autos: ', error)
+      throw new Error('Error al obtener autos')
+    }
+  }
+
   static async getMostRented() {
     try {
       const cars = await prisma.carro.findMany({
