@@ -73,6 +73,7 @@ class CarModel {
       })
 
       return cars.map(car => ({
+        id: car.id,
         marca: car.marca,
         modelo: car.modelo,
         anio: car.a_o,
