@@ -3,7 +3,7 @@ const prisma = new PrismaClient();
 const { v4: uuidv4 } = require('uuid');
 
 function generarCodigoOrdenPago() {
-    return `ORD-${uuidv4().split('-')[0].toUpperCase()}-${Date.now()}`;
+  return `ORD-${uuidv4().split('-')[0].toUpperCase()}-${Date.now()}`;
 }
 
 exports.createPaymentOrder = async (req, res) => {
@@ -48,10 +48,10 @@ exports.RegisterTransactionNumber = async (req, res) => {
     if (!codigo_orden_pago || !numero_transaccion) {
       return res.status(400).json({ error: 'Faltan datos necesarios' });
     }
-    
+
     // verificar que el numero sea un string
     const numeroTransaccion = String(numero_transaccion);
-    
+
     // Actualizar el estado de la orden de pago a "PROCESANDO"
     await prisma.ordenPago.update({
       where: {
@@ -62,7 +62,7 @@ exports.RegisterTransactionNumber = async (req, res) => {
       }
     });
     // Crear el comprobante de pago
-    const comprobantePago = await prisma.ComprobanteDePago.create({
+    const comprobantePago = await prisma.comprobanteDePago.create({
       data: {
         OrdenPago: {
           connect: {
@@ -72,7 +72,7 @@ exports.RegisterTransactionNumber = async (req, res) => {
         numero_transaccion: numeroTransaccion
       },
     });
-    
+
 
     return res.status(201).json(comprobantePago);
   } catch (error) {
@@ -97,24 +97,24 @@ exports.getListPaymentOrders = async (req, res) => {
     const ordenes = await prisma.ordenPago.findMany({
       where: { id_usuario_renter: idUsuario },
       include: {
-        host:  { select: { nombre: true } },   // Usuario host
-        carro: { select: { placa: true } },  // Carro
+        Usuario_OrdenPago_id_usuario_hostToUsuario: { select: { nombre: true } },   // Usuario host
+        Carro: { select: { placa: true } },  // Carro
       }
     });
 
 
-    const ordenesFormateadas = ordenes.map(({ 
-        codigo, 
-        monto_a_pagar, 
-        estado, 
-        host: { nombre }, 
-        carro: { placa } 
-      }) => ({
-        codigo,
-        monto_a_pagar,
-        estado,
-        nombre,
-        placa
+    const ordenesFormateadas = ordenes.map(({
+      codigo,
+      monto_a_pagar,
+      estado,
+      host: { nombre },
+      carro: { placa }
+    }) => ({
+      codigo,
+      monto_a_pagar,
+      estado,
+      nombre,
+      placa
     }));
     return res.status(200).json(ordenesFormateadas);
   } catch (error) {
@@ -132,13 +132,13 @@ exports.getInfoPaymentOrderbyCode = async (req, res) => {
     if (!codigo) {
       return res.status(400).json({ error: 'Faltan datos necesarios' });
     }
-    
+
     // Obtener la lista de órdenes de pago
     const orden = await prisma.ordenPago.findUnique({
       where: { codigo: codigo },
       include: {
-        host:  { select: { nombre: true, telefono: true, correo: true } },   // Usuario host
-        carro: { select: { placa: true, marca: true , modelo: true } },  // Carro
+        Usuario_OrdenPago_id_usuario_hostToUsuario: { select: { nombre: true, telefono: true, correo: true } },   // Usuario host
+        Carro: { select: { placa: true, marca: true, modelo: true } },  // Carro
       }
     });
 
@@ -147,12 +147,12 @@ exports.getInfoPaymentOrderbyCode = async (req, res) => {
       codigo: codigoOrd,
       monto_a_pagar,
       estado,
-      host:   { nombre, telefono, correo },
-      carro:  { placa, marca, modelo }
+      host: { nombre, telefono, correo },
+      carro: { placa, marca, modelo }
     } = orden;
 
     return res.status(200).json({
-      codigo:       codigoOrd,
+      codigo: codigoOrd,
       monto_a_pagar,
       estado,
       nombre,
@@ -186,7 +186,7 @@ exports.getListProcessingOrders = async (req, res) => {
       where: { id: idUsuario },
       select: {
         id: true,
-        roles: {
+        UsuarioRol: {
           where: { rol: { rol: 'ADMIN' } }, // Filtro directo en la relación
           select: { id: true }
         }
@@ -200,26 +200,26 @@ exports.getListProcessingOrders = async (req, res) => {
     const ordenes = await prisma.ordenPago.findMany({
       where: { estado: 'PROCESANDO' },
       include: {
-        renter: { select: { nombre: true } },
-        host: { select: { nombre: true } },
+        Usuario_OrdenPago_id_usuario_renterToUsuario: { select: { nombre: true } },
+        Usuario_OrdenPago_id_usuario_hostToUsuario: { select: { nombre: true } },
         ComprobanteDePago: {
           take: 1,    // solo el primer comprobante
           select: {
             numero_transaccion: true,
-            fecha_emision:      true
+            fecha_emision: true
           }
         }
       }
     });
 
     const ordenesFormateadas = ordenes.map(o => ({
-      codigo:             o.codigo,
-      monto_a_pagar:      o.monto_a_pagar,
-      estado:             o.estado,
-      renter:             o.renter.nombre,
-      host:               o.host.nombre,
+      codigo: o.codigo,
+      monto_a_pagar: o.monto_a_pagar,
+      estado: o.estado,
+      renter: o.renter.nombre,
+      host: o.host.nombre,
       numero_transaccion: o.ComprobanteDePago[0]?.numero_transaccion ?? null,
-      fecha_emision:      o.fecha_de_emision ?? null,
+      fecha_emision: o.fecha_de_emision ?? null,
     }));
     return res.status(200).json(ordenesFormateadas);
   } catch (error) {
@@ -241,36 +241,36 @@ exports.getProcessingOrderDetails = async (req, res) => {
     if (isNaN(idUsuario)) {
       return res.status(400).json({ error: 'El id del usuario debe ser un número entero' });
     }
-    
+
     const tieneAcceso = await prisma.usuario.findUnique({
       where: { id: idUsuario },
       select: {
         id: true,
-        roles: {
-          where: { rol: { rol: 'ADMIN' } },
+        UsuarioRol: {
+          where: { Rol: { rol: 'ADMIN' } },
           select: { id: true }
         }
       }
     });
-    
+
     if (!tieneAcceso || tieneAcceso.roles.length === 0) {
       return res.status(403).json({ error: 'Acceso denegado' });
     }
-    
+
     const orden = await prisma.ordenPago.findFirst({
       where: { codigo: codigo },
       include: {
-        renter: { 
-          select: { 
+        Usuario_OrdenPago_id_usuario_renterToUsuario: {
+          select: {
             nombre: true,
-            id: true 
-          } 
+            id: true
+          }
         },
-        host: { 
-          select: { 
+        Usuario_OrdenPago_id_usuario_hostToUsuario: {
+          select: {
             nombre: true,
-            id: true 
-          } 
+            id: true
+          }
         },
         ComprobanteDePago: {
           select: {
@@ -281,13 +281,13 @@ exports.getProcessingOrderDetails = async (req, res) => {
         }
       }
     });
-    
+
     if (!orden) {
       return res.status(404).json({ error: 'Orden de pago no encontrada' });
     }
 
     return res.status(200).json(orden);
-    
+
   } catch (error) {
     console.error('Error al obtener detalles de la orden de pago:', error);
     return res.status(500).json({ error: 'Error interno del servidor' });
@@ -306,8 +306,8 @@ exports.UpdateStatePaymentOrder = async (req, res) => {
       where: { id: idUsuario },
       select: {
         id: true,
-        roles: {
-          where: { rol: { rol: 'ADMIN' } }, // Filtro directo en la relación
+        UsuarioRol: {
+          where: { Rol: { rol: 'ADMIN' } }, // Filtro directo en la relación
           select: { id: true }
         }
       }
@@ -318,7 +318,7 @@ exports.UpdateStatePaymentOrder = async (req, res) => {
 
     // verificar que el estado sea un string
     const estadoOrden = String(estado);
-    
+
     // Crear el comprobante de pago
     const comprobantePago = await prisma.ordenPago.update({
       where: {
@@ -328,8 +328,8 @@ exports.UpdateStatePaymentOrder = async (req, res) => {
         estado: estadoOrden
       }
     });
-    if(estadoOrden === 'COMPLETADO'){
-      
+    if (estadoOrden === 'COMPLETADO') {
+
       //Actualizar el saldo del usuario
       const usuario = await prisma.usuario.findUnique({
         where: {
