@@ -13,6 +13,8 @@ const { searchRouter } = require("./routes/search");
 const { userRouter } = require("./routes/users");
 const loginRoutes = require('./login');
 const OrdenPagoRoutes = require('./routes/paymentOrderRoutes');
+const garantiaRouter = require('./routes/garantias');
+
 const app = express()
 
 app.use(cors())
@@ -26,7 +28,9 @@ app.use('/api/reservations', reservationRouter)
 app.use('/api/search', searchRouter)
 app.use('/api/users', userRouter)
 app.use('/login', loginRoutes);
-app.use('/api', OrdenPagoRoutes)
+app.use('/api', OrdenPagoRoutes);
+app.use('/api/garantias', garantiaRouter);
+
 app.listen()
 module.exports = app;
 
