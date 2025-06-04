@@ -9,18 +9,18 @@ class GarantiaController {
 
       const carro = await prisma.carro.findUnique({
         where: { id: Number(id_carro) },
-        include: { garantia: true },
+        include: { Garantia: true },
       });
 
       if (!carro) {
         return res.status(404).json({ error: "Carro no encontrado" });
       }
 
-      if (!carro.garantia) {
+      if (!carro.Garantia) {
         return res.status(200).json({ garantia: null, mensaje: "No hay garantía para este carro" });
       }
 
-      res.status(200).json({ garantia: carro.garantia });
+      res.status(200).json({ garantia: carro.Garantia });
     } catch (error) {
       console.error("Error al obtener garantía por carro:", error);
       res.status(500).json({ error: "Error interno del servidor" });
@@ -35,17 +35,17 @@ class GarantiaController {
       // Primero verificamos si el carro existe y si ya tiene garantía
       const carro = await prisma.carro.findUnique({
         where: { id: id_carro },
-        include: { garantia: true },
+        include: { Garantia: true },
       });
 
       if (!carro) {
         return res.status(404).json({ error: 'Carro no encontrado' });
       }
 
-      if (carro.garantia) {
+      if (carro.Garantia) {
         return res.status(400).json({
           mensaje: 'El carro ya tiene una garantía asociada',
-          garantia: carro.garantia,
+          garantia: carro.Garantia,
         });
       }
 
