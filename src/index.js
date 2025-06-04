@@ -14,6 +14,7 @@ const { userRouter } = require("./routes/users");
 const loginRoutes = require('./login');
 const OrdenPagoRoutes = require('./routes/paymentOrderRoutes');
 const garantiaRouter = require('./routes/garantias');
+const authRoutes = require('./routes/authRoutes');
 
 const app = express()
 
@@ -22,6 +23,7 @@ app.use(express.json())
 app.use(morgan("dev"))
 app.disable("x-powered-by")
 
+app.use('/api/auth', authRoutes);
 app.use('/api/cars', carRouter)
 app.use('/api/airports', airportRouter)
 app.use('/api/reservations', reservationRouter)
@@ -34,9 +36,9 @@ app.use('/api/garantias', garantiaRouter);
 app.listen()
 module.exports = app;
 
-//const PORT = process.env.PORT || 4000;
-//app.listen(PORT, () => {
-//  console.log(`Server is running on http://localhost:${PORT}`);
-//});
-
+/**const PORT = process.env.PORT || 4000;
+app.listen(PORT, () => {
+  console.log(`Server is running on http://localhost:${PORT}`);
+});
+**/
 
