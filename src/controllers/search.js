@@ -1,5 +1,6 @@
 const { searchModel } = require("../models/search");
 const { validateSearch } = require("../validations/search");
+const { prisma } = require("../config/prisma")
 
 class searchController {
   static async createSearch(req, res) {
